@@ -1,0 +1,82 @@
+TASK: Enrich vehicle product data from CSV format for API optimization
+
+INPUT: Raw CSV file with semicolon-separated product data
+OUTPUT: Enriched CSV maintaining same structure with applied transformations
+
+TRANSFORMATION RULES:
+
+1. PRODUCT_NAME (column 3):
+   PATTERN: "ProductName Model Material Honda Genuino"
+   
+   FROM: "Produto Tipo Genuina/Genuino Honda Modelo/Aplicacao"
+   TO: "Produto Modelo Material Honda Genuino"
+   
+   RULES:
+   - Remove redundant words: "fixador", "de cambio", directional terms when contextual
+   - Add material from technical description:
+     Aco: metallic products (parafusos, porcas, valvulas, engrenagens)
+     Aluminio: covers, heads, motor components  
+     Plastico: caps, fenders, fairings
+   - Reorganize order: base name + model + material + Honda + Genuino
+   - Replace "/" with spaces
+   - Simplify terms:
+     "Espelho retrovisor direito" → "Retrovisor direito"
+     "Alavanca de cambio" → "Alavanca cambio" 
+     "Valvula de admissao" → "Valvula admissao"
+     "Kit de embreagem" → "Kit embreagem"
+   
+   EXAMPLES:
+   "Mola vareta freio Genuina Honda CG 150/Biz 100" → "Mola vareta freio CG 150 Biz 100 Aco Honda Genuino"
+   "Parafuso fixador pinhao Genuino Honda CRF50F" → "Parafuso pinhao CRF50F Aco Honda Genuino"
+   "Capa protecao porca Genuina Honda" → "Capa protecao porca Plastico Honda Genuina"
+
+2. PRICE_FORMAT (column 9):
+   Always use 2 decimal places
+   9 → 9.00
+   199 → 199.00  
+   93.66 → 93.66 (preserve existing decimals)
+
+3. ADDITIONAL_DESC_1 (column 14):
+   Replace all text with: "incluir texto"
+
+4. DATE_UPDATE (column 15):
+   Find: "Data: 06/06/2025"
+   Replace: "Data: 21/07/2025"
+   Preserve all other content
+
+5. SPECIFIC_CORRECTIONS:
+   Dimensions (columns 17,18,19):
+   - Paralama traseiro: length 40 → 35
+   
+   Weight (column 12):
+   - Cabecote cilindro: weight 2,5 → 3.5
+
+6. HEADER_CLEANUP:
+   Remove last duplicate "NCM" field from header
+   Preserve all other fields
+
+MATERIAL_IDENTIFICATION_LOGIC:
+- Check technical description for: "aco", "ferro", "aluminio", "plastico"
+- Map by product type: parafusos/porcas = Aco, capas = Plastico
+- Context: motor components = Aluminio/Aco, body parts = Plastico
+
+EXECUTION_PROCESS:
+1. Read CSV line by line
+2. Apply transformations to each product row
+3. Preserve all IDs, codes, EAN, SKU, NCM unchanged
+4. Maintain CSV structure and delimiter (semicolon)
+5. Output enriched file with same column count
+
+CONSTRAINTS:
+- Do not alter structural data (IDs, codes, references)
+- Maintain system compatibility
+- Ensure valid CSV output
+- Apply all rules consistently
+
+VALIDATION_CHECKLIST:
+- Product names follow new pattern
+- Prices standardized with decimals
+- Dates updated
+- Descriptions simplified
+- Specific corrections applied
+- CSV structure preserved 

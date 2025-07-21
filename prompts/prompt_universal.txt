@@ -1,0 +1,98 @@
+TASK: Enrich vehicle product data from CSV format for API optimization
+
+INPUT: Raw CSV file with semicolon-separated product data
+OUTPUT: Enriched CSV maintaining same structure with applied transformations
+
+TRANSFORMATION RULES:
+
+1. PRODUCT_NAME (column 3):
+   PATTERN: "ProductName Model Material Brand Genuino/Original"
+   
+   FROM: "Produto Tipo Genuina/Genuino/Original Marca Modelo/Aplicacao"
+   TO: "Produto Modelo Material Marca Genuino/Original"
+   
+   RULES:
+   - Remove redundant words: "fixador", "de cambio", directional terms when contextual
+   - Add material from technical description:
+     Aco: metallic products (parafusos, porcas, valvulas, engrenagens, molas)
+     Aluminio: covers, heads, motor components  
+     Plastico: caps, fenders, fairings, covers
+   - Reorganize order: base name + model + material + brand + authenticity
+   - Replace "/" with spaces
+   - Simplify terms by removing redundant words:
+     Remove "fixador", "de [something]" when redundant
+     Simplify compound names: "Componente de sistema" → "Componente sistema"
+     Remove directional redundancy when context is clear
+     Shorten kit descriptions: "Kit de [system]" → "Kit [system]"
+   
+   EXAMPLES:
+   "Produto Tipo Genuina Marca Modelo/Aplicacao" → "Produto Modelo Material Marca Genuino"
+   "Peca fixadora Original Marca Serie" → "Peca Serie Material Marca Original"
+   "Componente protecao Genuina Marca" → "Componente Material Marca Genuina"
+
+2. PRICE_FORMAT (column 9):
+   Always use 2 decimal places
+   9 → 9.00
+   199 → 199.00  
+   93.66 → 93.66 (preserve existing decimals)
+
+3. ADDITIONAL_DESC_1 (column 14):
+   Replace all text with: "incluir texto"
+
+4. DATE_UPDATE (column 15):
+   Find existing date patterns in format: "Data: DD/MM/YYYY"
+   Replace with current processing date or specified target date
+   Preserve all other content in description
+
+5. DATA_CORRECTIONS:
+   Apply corrections based on patterns:
+   Dimensions (columns 17,18,19):
+   - Large parts: verify dimension consistency against product type
+   - Body panels: check for reasonable proportions
+   
+   Weight (column 12):
+   - Heavy components: verify weight matches material and size
+   - Small parts: ensure weight is not unrealistic for material type
+
+6. HEADER_CLEANUP:
+   Remove last duplicate field if present (commonly "NCM")
+   Preserve all other fields
+
+MATERIAL_IDENTIFICATION_LOGIC:
+- Check technical description for material keywords: "aco", "ferro", "aluminio", "plastico", "metal", "aluminum", "plastic", "borracha", "rubber"
+- Map by component categories:
+  * Fastening components (screws, bolts, nuts, washers) = Aco
+  * Protective covers and caps = Plastico  
+  * Engine/motor components = Aluminio or Aco (based on description)
+  * Body/exterior parts = Plastico or Aco
+  * Sealing components = Borracha or Plastico
+- Default hierarchy: If unclear, prioritize material mentioned in description, then default to Aco for metal-like parts
+
+BRAND_DETECTION:
+- Identify brand from original product name
+- Common brands: Honda, Yamaha, Suzuki, Kawasaki, BMW, etc.
+- Preserve brand authenticity terms: Genuino, Original, OEM
+
+EXECUTION_PROCESS:
+1. Read CSV line by line
+2. Extract brand and authenticity from original name
+3. Apply transformations to each product row
+4. Preserve all IDs, codes, EAN, SKU, NCM unchanged
+5. Maintain CSV structure and delimiter (semicolon)
+6. Output enriched file with same column count
+
+CONSTRAINTS:
+- Do not alter structural data (IDs, codes, references)
+- Maintain system compatibility
+- Ensure valid CSV output
+- Apply all rules consistently regardless of brand
+- Preserve original brand and authenticity information
+
+VALIDATION_CHECKLIST:
+- Product names follow new pattern with correct brand
+- Prices standardized with decimals
+- Dates updated consistently
+- Descriptions simplified
+- Material correctly identified
+- Brand and authenticity preserved
+- CSV structure maintained 
