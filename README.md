@@ -210,9 +210,7 @@ gerador_CVS/
 ├── scripts/                        # Scripts auxiliares
 ├── .env.example                    # Template de variáveis de ambiente
 ├── .gitignore                      # Regras do Git
-├── ARCHITECTURE.md                 # Documentação da arquitetura
 ├── README.md                       # Este arquivo
-├── README_SETUP.md                 # Guia de setup detalhado
 ├── regras_de_negocio.txt          # Regras de enriquecimento de dados
 ├── requirements.txt               # Dependências Python
 ├── run_api.py                     # Script para executar a API
