@@ -86,7 +86,7 @@ docker-compose down
 
 #### Opção 2: Execução Manual
 ```bash
-# Terminal 1 - API
+# Terminal 1 - API 
 python run_api.py
 
 # Terminal 2 - Monitor de Email
