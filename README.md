@@ -1,272 +1,370 @@
-# CSV Automation System
+# 🚀 Gerador CVS - Sistema de Processamento Automático
 
-Sistema automatizado para processamento de dados de produtos veiculares via IA.
+Sistema completo para processamento automatizado de arquivos CSV com enriquecimento de dados usando IA (OpenAI + LangChain).
 
-## 🚀 Quick Start
+## 📋 Visão Geral
 
-### 1. Setup Environment
+### 🎯 Funcionalidades Principais
 
-```bash
-# Clone project directory
-git clone <repository-url> csv-automation
-cd csv-automation
+- ✅ **Monitoramento de Email**: Recebe arquivos CSV automaticamente por email (IMAP)
+- ✅ **Processamento IA**: Enriquece dados seguindo regras de negócio específicas
+- ✅ **API REST**: Endpoints para upload e processamento manual
+- ✅ **Docker**: Containerização completa com Docker Compose
+- ✅ **Validação**: Modelos Pydantic para validação de dados
+- ✅ **Fallback**: Sistema robusto com dados padrão se IA falhar
 
-# Create environment file from template
-cp .env.example .env
-# Edit .env with your credentials
-```
-
-### 2. Configure Environment Variables
-
-```env
-# Email Configuration
-EMAIL_HOST=imap.gmail.com
-EMAIL_PORT=993
-EMAIL_USERNAME=your-email@example.com
-EMAIL_PASSWORD=your-app-password
-EMAIL_USE_SSL=true
-
-# OpenAI Configuration
-OPENAI_API_KEY=sk-your-openai-api-key-here
-
-# Application Settings
-CSV_STORAGE_PATH=./data
-LOG_LEVEL=INFO
-API_PORT=8000
-
-# Processing Settings
-EMAIL_CHECK_INTERVAL=300
-MAX_FILE_SIZE_MB=50
-```
-
-### 3. Install Dependencies
-
-```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# or
-venv\Scripts\activate     # Windows
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### 4. Run Application
-
-```bash
-# Run API server
-uvicorn app.main:app --reload --port 8000
-
-# Run email monitor (in separate terminal)
-python -m app.services.email_monitor
-```
-
-## 📡 API Endpoints
-
-### Process CSV File
-```bash
-curl -X POST "http://localhost:8000/process-csv" \
-  -F "file=@your-file.csv"
-```
-
-### Health Check
-```bash
-curl http://localhost:8000/health
-```
-
-### List Files
-```bash
-curl http://localhost:8000/files
-```
-
-## 🏗️ Architecture
+### 🏗️ Arquitetura do Sistema
 
 ```
 Email Monitor ──→ CSV Download ──→ API Processing ──→ Enriched Output
      │                │                    │                │
-   IMAP/POP3      File Storage        OpenAI + LangChain   CSV Export
+   IMAP/SSL       File Storage      OpenAI + LangChain   CSV Export
 ```
 
-## 🔄 Process Flow
+## 🛠️ Instalação e Configuração
 
-1. **Email Monitor** verifica inbox a cada 5 minutos
-2. **Detecta CSVs** em anexos de emails não lidos  
-3. **Download** automático para storage local
-4. **Processamento IA** via API usando prompt universal
-5. **Output enriquecido** salvo como `enriched_[filename].csv`
+### 1. Preparação do Ambiente
 
-## 📁 Project Structure
-
-```
-csv-automation/
-├── app/
-│   ├── core/
-│   │   ├── __init__.py
-│   │   └── config.py           # Settings & configuration
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── email_monitor.py    # Email monitoring service
-│   │   └── csv_processor.py    # AI processing service
-│   ├── __init__.py
-│   └── main.py                 # FastAPI application
-├── data/                       # CSV storage (gitignored)
-├── logs/                       # Application logs (gitignored)
-├── examples/
-│   ├── Carga CMNS.csv         # Input example
-│   └── output.csv             # Output example
-├── .env.example               # Environment template
-├── .gitignore                 # Git ignore rules
-├── ARCHITECTURE.md            # System architecture docs
-├── README.md                  # This file
-├── requirements.txt           # Python dependencies
-└── prompt_enriquecimento_produtos.txt  # AI prompt template
-```
-
-## 🔧 Development
-
-### Local Development
 ```bash
-# Install dependencies
+# Clone do projeto
+git clone <repository-url> gerador_CVS
+cd gerador_CVS
+
+# Instalar dependências
 pip install -r requirements.txt
 
-# Run API server
-uvicorn app.main:app --reload --port 8000
-
-# Run email monitor (separate terminal)
-python -m app.services.email_monitor
-```
-
-### Testing
-```bash
-# Test API with sample file
-curl -X POST "http://localhost:8000/process-csv" \
-  -F "file=@examples/Carga CMNS.csv" \
-  -o "test_output.csv"
-
-# Compare with expected output
-diff test_output.csv examples/output.csv
-```
-
-## 🔍 Monitoring
-
-### Check Logs
-```bash
-# View application logs
-tail -f logs/app.log
-
-# Monitor both services
-# Terminal 1: API logs
-uvicorn app.main:app --reload --log-level info
-
-# Terminal 2: Email monitor logs  
-python -m app.services.email_monitor
-```
-
-### File Storage
-- **Input CSVs**: `./data/`
-- **Processed CSVs**: `./data/enriched_*`
-- **Application Logs**: `./logs/`
-- **Example Files**: `./examples/`
-
-## ⚙️ Configuration
-
-### Email Providers
-- **Gmail**: Use app passwords, enable 2FA
-- **Outlook**: Use standard credentials
-- **Custom IMAP**: Configure HOST and PORT
-
-### AI Processing
-- **Model**: GPT-3.5-turbo (configurable)  
-- **Batch Size**: 10 rows per request
-- **Timeout**: 5 minutes per file
-
-## 🚨 Troubleshooting
-
-### Email Connection Issues
-```bash
-# Test email credentials
-python -c "
-import imaplib
-mail = imaplib.IMAP4_SSL('imap.gmail.com', 993)
-mail.login('your-email', 'your-password')
-print('Connection successful')
-"
-```
-
-### API Issues
-```bash
-# Check API health
-curl http://localhost:8000/health
-
-# Test CSV processing
-curl -X POST "http://localhost:8000/process-csv" \
-  -F "file=@examples/Carga CMNS.csv" \
-  -o "test_output.csv"
-
-# Check if API is running
-netstat -an | grep 8000  # Linux/Mac
-netstat -an | findstr 8000  # Windows
-```
-
-### Storage Issues
-```bash
-# Create required directories
+# Criar diretórios necessários
 mkdir -p data logs
-
-# Check permissions (Linux/Mac)
-ls -la data/
-chmod 755 data/
-
-# Check disk space
-df -h .  # Linux/Mac
-dir    # Windows
 ```
 
-## 🔧 Environment Setup
+### 2. Configuração de Variáveis de Ambiente
 
-Create your `.env` file:
 ```bash
-# Copy template  
+# Criar arquivo de configuração
 cp .env.example .env
+# Editar com suas credenciais
 ```
 
-Required environment variables:
+**Configurações obrigatórias (.env):**
 ```env
-# Email Configuration
+# OpenAI Configuration (OBRIGATÓRIO)
+OPENAI_API_KEY=sk-your-openai-api-key-here
+
+# Email Configuration (Para monitoramento automático)
 EMAIL_HOST=imap.gmail.com
 EMAIL_PORT=993
-EMAIL_USERNAME=your-email@example.com
-EMAIL_PASSWORD=your-app-password
+EMAIL_USERNAME=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password  # Use App Password para Gmail
 EMAIL_USE_SSL=true
-
-# OpenAI Configuration
-OPENAI_API_KEY=sk-your-openai-api-key-here
 
 # Application Settings
 CSV_STORAGE_PATH=./data
 LOG_LEVEL=INFO
 API_PORT=8000
-EMAIL_CHECK_INTERVAL=300
+EMAIL_CHECK_INTERVAL=300  # Verifica emails a cada 5 minutos
 MAX_FILE_SIZE_MB=50
 ```
 
-## 📊 Production Notes
+**⚠️ Importante para Gmail:**
+1. Ative a verificação em 2 etapas
+2. Gere uma senha de app em: https://myaccount.google.com/apppasswords
+3. Use a senha de 16 caracteres gerada (não sua senha normal)
 
-### Performance
-- **Batch Processing**: 10 rows per AI request for optimal performance
-- **File Size Limit**: 50MB maximum (configurable via MAX_FILE_SIZE_MB)
-- **Email Polling**: Every 5 minutes (configurable via EMAIL_CHECK_INTERVAL)
-- **AI Model**: GPT-3.5-turbo for best speed/cost balance
+### 3. Execução do Sistema
 
-### Security
-- **Environment Variables**: All credentials stored in `.env` file
-- **API Keys**: Rotate OpenAI keys regularly
-- **Email Authentication**: Use app-specific passwords for Gmail
-- **Local Storage**: Files processed locally, no external uploads
+#### Opção 1: Docker Compose (Recomendado)
+```bash
+# Iniciar todos os serviços
+docker-compose up -d
 
-### Monitoring & Maintenance
-- **Logs**: Application logs stored in `./logs/` directory
-- **File Tracking**: All input/output CSV pairs preserved
-- **Error Handling**: System falls back to original data on AI failures
-- **Health Monitoring**: Use `/health` endpoint for status checks
+# Ver logs em tempo real
+docker-compose logs -f
+
+# Parar serviços
+docker-compose down
+```
+
+#### Opção 2: Execução Manual
+```bash
+# Terminal 1 - API
+python run_api.py
+
+# Terminal 2 - Monitor de Email
+python -m app.services.email_monitor
+```
+
+### 4. Verificar Funcionamento
+
+#### Teste via API (Manual)
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Processar CSV
+curl -X POST "http://localhost:8000/process-csv" \
+  -F "file=@examples/input/Carga CMNS.csv" \
+  -o "output_enriquecido.csv"
+```
+
+#### Teste via Email (Automático)
+1. Envie um email para o endereço configurado
+2. Anexe um arquivo CSV no formato de entrada
+3. Aguarde o processamento (verifica a cada 5 minutos)
+4. Arquivo enriquecido será salvo em `data/enriched_*.csv`
+
+## 📡 API Endpoints
+
+### Health Check
+```http
+GET /health
+Response: {"status": "healthy", "service": "csv-automation"}
+```
+
+### Processar CSV
+```http
+POST /process-csv
+Content-Type: multipart/form-data
+Body: file (CSV)
+Response: Arquivo CSV enriquecido para download
+```
+
+### Listar Arquivos
+```http
+GET /files
+Response: {"files": ["input_file1.csv", "enriched_file1.csv"]}
+```
+
+### Documentação Interativa
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+## 📊 Formato dos Dados
+
+### Entrada (CSV)
+```csv
+Referencia,Descricao,Quantidade Estoque,Preço de Venda,Preço de Custo,SKU,EAN
+9501473100,9501473100 MOLA VARETA FREIO,2,"R$ 3,83","R$ 2,55",CMNS0483KLE,7897925504835
+90084041000,90084041000 PARAFUSO FIX PINHAO,2,"R$ 5,16","R$ 3,44",CMNS0485KLE,7897925504859
+```
+
+### Saída (CSV Enriquecido - Formato BaseBlinker)
+```csv
+ID_produto;ID_OEM;Nome do Produto (BR);ID do Fabricante;Quantidade (Padrão);EAN;SKU;Nome da categoria;Preço (Padrão (BRL));Preço de Compra;Custo (médio);Peso;Descrição (BR);Descrição adicional 1 (BR);Descrição adicional 2 (BR);Nome do fabricante;Altura;Comprimento;Largura;Campo adicional - Tipo de unidade;Tipo de unidade;Campo adicional - Código da origem;Código da origem;Campo adicional - Código do fabricante;Código do fabricante;Parâmetro - NCM (BR);NCM;Parâmetro - Origin Type (BR);Parâmetro - Origin Detail (BR);Campo adicional - NCM
+CMNS0483KLE;9501473100;Mola vareta freio Honda Genuíno;9501473100;2;7897925504835;CMNS0483KLE;Peças de Freio Moto;3.83;2.55;2.55;0.05;Mola vareta freio original Honda SKU: LK CMNS0483KLE;incluir texto;Descrição do Produto: Mola vareta freio Aplicação (Compatibilidade de Modelos e Ano): CG150, CG125, Titan Descrição Técnica: mola de aço Marca: Honda Garantia: 3 meses Data: 2025-01-15 Conteúdo da Embalagem: 1 UND de mola Dimensões em cm (Altura x Comprimento x Largura): 1.0x10.0x1.0 Peso (kg): 0.05 Código SKU: CMNS0483KLE Código do Fabricante/Referência: 9501473100 NCM: 7318.15.00 Descrição NCM: Porcas e parafusos de metal comum Op: LK;Honda;1.0;10.0;1.0;un;un;0 - Nacional, exceto as indicadas nos códigos 3, 4, 5 e 8;0 - Nacional, exceto as indicadas nos códigos 3, 4, 5 e 8;9501473100;9501473100;7318.15.00;7318.15.00;0;Reseller;7318.15.00
+```
+
+## 🔄 Fluxo de Processamento
+
+### Processamento Automático (Email)
+1. **Monitor de Email** verifica inbox a cada 5 minutos
+2. **Detecta CSVs** em anexos de emails não lidos
+3. **Download automático** para pasta `data/`
+4. **Processamento IA** linha por linha seguindo regras de negócio
+5. **Output enriquecido** salvo como `data/enriched_*.csv`
+
+### Processamento Manual (API)
+1. **Upload CSV** via endpoint `/process-csv` ou Swagger UI
+2. **Processamento IA** usando OpenAI + LangChain
+3. **Download direto** do arquivo enriquecido
+
+### Regras de Enriquecimento
+- **Nome do Produto**: Remove referência + adiciona "Honda Genuíno" (máx 60 chars)
+- **Categorização**: Específica por tipo (Parafusos Moto, Kit Revisão Moto, etc.)
+- **NCM**: Códigos fiscais corretos por categoria
+- **Dimensões/Peso**: Estimativas realistas baseadas no tipo de peça
+- **Descrição Adicional 2**: Template completo seguindo regras de negócio
+
+## 📁 Estrutura do Projeto
+
+```
+gerador_CVS/
+├── app/
+│   ├── core/
+│   │   ├── __init__.py
+│   │   └── config.py                 # Configurações da aplicação
+│   ├── models/
+│   │   ├── __init__.py
+│   │   └── csv_models.py            # Modelos Pydantic para validação
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── ai_agent.py              # Agente IA com LangChain + OpenAI
+│   │   ├── csv_processor.py         # Processador principal de CSV
+│   │   └── email_monitor.py         # Monitor de emails IMAP
+│   ├── __init__.py
+│   └── main.py                      # API FastAPI
+├── docker/
+│   ├── docker-compose.yml           # Orquestração de serviços
+│   └── Dockerfile                   # Imagem Docker
+├── data/                            # Armazenamento de CSVs (gitignored)
+│   ├── input_*.csv                  # Arquivos de entrada
+│   └── enriched_*.csv               # Arquivos processados
+├── logs/                            # Logs da aplicação (gitignored)
+├── examples/
+│   ├── input/
+│   │   └── Carga CMNS.csv          # Exemplo de entrada
+│   └── output/
+│       └── output.csv              # Exemplo de saída esperada
+├── prompts/
+│   ├── prompt_enriquecimento_produtos.txt
+│   └── prompt_universal.txt
+├── scripts/                        # Scripts auxiliares
+├── .env.example                    # Template de variáveis de ambiente
+├── .gitignore                      # Regras do Git
+├── ARCHITECTURE.md                 # Documentação da arquitetura
+├── README.md                       # Este arquivo
+├── README_SETUP.md                 # Guia de setup detalhado
+├── regras_de_negocio.txt          # Regras de enriquecimento de dados
+├── requirements.txt               # Dependências Python
+├── run_api.py                     # Script para executar a API
+└── start.sh                       # Script de inicialização automática
+```
+
+## 🔧 Status do Desenvolvimento
+
+### Componentes Implementados
+- ✅ **API FastAPI**: Funcionando completamente
+- ✅ **CSV Processor**: Funcionando com OpenAI + LangChain
+- ✅ **AI Agent**: Enriquecimento seguindo regras de negócio
+- ✅ **Email Monitor**: Funcionando com IMAP/SSL
+- ✅ **Docker**: Testado e funcionando
+- ✅ **Modelos Pydantic**: Validação de dados
+- ✅ **Fallback System**: Sistema robusto com dados padrão
+
+### Tecnologias Utilizadas
+- **Backend**: FastAPI + Python 3.11
+- **IA**: OpenAI GPT-4o-mini + LangChain
+- **Email**: IMAP/SSL com imaplib
+- **Validação**: Pydantic v2
+- **Containerização**: Docker + Docker Compose
+- **Processamento**: Pandas + asyncio
+
+## 📊 Performance e Monitoramento
+
+### Métricas de Performance
+- **Processamento**: ~1-2 segundos por linha
+- **Rate Limiting**: 0.5s delay entre requisições IA
+- **Timeout**: 5 minutos para processamento completo
+- **Fallback**: Dados padrão se IA falhar
+- **Email Check**: A cada 5 minutos (configurável)
+
+### Monitoramento de Logs
+```bash
+# Docker Compose
+docker-compose logs -f
+
+# Logs específicos
+docker-compose logs -f email-monitor
+docker-compose logs -f csv-processor
+
+# Execução manual
+tail -f logs/app.log
+```
+
+### Armazenamento de Arquivos
+- **CSVs de entrada**: `./data/input_*.csv`
+- **CSVs processados**: `./data/enriched_*.csv`
+- **Logs da aplicação**: `./logs/`
+- **Arquivos de exemplo**: `./examples/`
+
+## ⚙️ Configurações Avançadas
+
+### Provedores de Email Suportados
+```env
+# Gmail (Recomendado)
+EMAIL_HOST=imap.gmail.com
+EMAIL_PORT=993
+EMAIL_USE_SSL=true
+
+# Outlook/Hotmail
+EMAIL_HOST=outlook.office365.com
+EMAIL_PORT=993
+EMAIL_USE_SSL=true
+
+# Yahoo
+EMAIL_HOST=imap.mail.yahoo.com
+EMAIL_PORT=993
+EMAIL_USE_SSL=true
+```
+
+### Configurações de IA
+- **Modelo**: GPT-4o-mini (otimizado para custo/performance)
+- **Temperatura**: 0.1 (respostas consistentes)
+- **Max Tokens**: 4000 por requisição
+- **Processamento**: Linha por linha com delay de 0.5s
+
+## 🚨 Troubleshooting
+
+### Problemas Comuns
+
+#### 1. Erro de Autenticação de Email
+```
+ERROR: [AUTHENTICATIONFAILED] Invalid credentials
+```
+**Solução:**
+- Para Gmail: Use senha de app (não senha normal)
+- Ative verificação em 2 etapas primeiro
+- Gere senha de app em: https://myaccount.google.com/apppasswords
+
+#### 2. Erro de API Key OpenAI
+```
+ERROR: OPENAI_API_KEY not configured
+```
+**Solução:**
+- Adicione sua chave OpenAI no arquivo `.env`
+- Verifique se a chave está ativa e tem créditos
+
+#### 3. Problemas de Conexão API
+```bash
+# Verificar se API está rodando
+curl http://localhost:8000/health
+
+# Testar processamento
+curl -X POST "http://localhost:8000/process-csv" \
+  -F "file=@examples/input/Carga CMNS.csv" \
+  -o "test_output.csv"
+```
+
+#### 4. Problemas de Armazenamento
+```bash
+# Criar diretórios necessários
+mkdir -p data logs
+
+# Verificar permissões (Linux/Mac)
+chmod 755 data/
+
+# Verificar espaço em disco
+df -h .  # Linux/Mac
+```
+
+## 🚀 Deploy e Produção
+
+### Configurações de Segurança
+- **Variáveis de Ambiente**: Todas as credenciais no arquivo `.env`
+- **API Keys**: Rotacione chaves OpenAI regularmente
+- **Autenticação Email**: Use senhas de app específicas
+- **Armazenamento Local**: Arquivos processados localmente
+
+### Monitoramento e Manutenção
+- **Logs**: Armazenados em `./logs/` com rotação automática
+- **Rastreamento**: Pares input/output preservados
+- **Error Handling**: Sistema com fallback robusto
+- **Health Check**: Endpoint `/health` para monitoramento
+
+### Escalabilidade
+- **Processamento**: Otimizado para arquivos até 50MB
+- **Rate Limiting**: Controle de requisições para IA
+- **Timeout**: 5 minutos máximo por arquivo
+- **Memory**: Processamento streaming para arquivos grandes
+
+## 📞 Suporte e Documentação
+
+### Arquivos de Referência
+- **`regras_de_negocio.txt`**: Regras detalhadas de enriquecimento
+- **`ARCHITECTURE.md`**: Documentação técnica da arquitetura
+- **`examples/`**: Exemplos de entrada e saída esperada
+
+### Para Dúvidas ou Problemas
+1. Verifique os logs em `docker-compose logs -f`
+2. Teste com arquivo de exemplo em `examples/input/`
+3. Valide configurações no arquivo `.env`
+4. Consulte o endpoint `/health` para status

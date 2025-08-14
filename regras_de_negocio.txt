@@ -1,0 +1,109 @@
+### INSTRUÇÕES PARA AGENTE DE IA – ENRIQUECIMENTO DE TABELAS E GERAÇÃO DE CSV
+
+#### ✅ OBJETIVO
+Receber uma lista de peças automotivas (carros, motos, caminhões, ônibus e acessórios) e gerar um arquivo CSV no padrão BaseBlinker,
+enriquecendo as informações com dados complementares como nome detalhado, categoria, descrição técnica, dimensões, peso, código NCM,
+e outras especificações necessárias.
+
+---
+
+#### ✅ ESTRUTURA DA ENTRADA
+Cada linha da lista de entrada terá os seguintes campos nesta ordem:
+```
+Referencia | Descricao | Quantidade Estoque | Preço de Venda | Preço de Custo | SKU | EAN
+```
+
+Exemplo:
+```
+90084041000 | 90084041000 PARAFUSO FIX PINHAO | 2 | R$ 5,16 | R$ 3,44 | CMNS0485KLE | 7897925504859
+```
+
+---
+
+#### ✅ ESTRUTURA DA SAÍDA (CSV)
+O arquivo CSV final deve ter o seguinte cabeçalho e separador ponto e vírgula (;):
+```
+ID_produto;ID_OEM;Nome do Produto (BR);ID do Fabricante;Quantidade (Padrão);EAN;SKU;Nome da categoria;Preço (Padrão (BRL));Preço de Compra;Custo (médio);Peso;Descrição (BR);Descrição adicional 1 (BR);Descrição adicional 2 (BR);Nome do fabricante;Altura;Comprimento;Largura;Campo adicional - Tipo de unidade;Tipo de unidade;Campo adicional - Código da origem;Código da origem;Campo adicional - Código do fabricante;Código do fabricante;Parâmetro - NCM (BR);NCM;Parâmetro - Origin Type (BR);Parâmetro - Ori...
+```
+
+**Regras Gerais do CSV:**
+- Codificação UTF-8
+- Delimitador: ;
+- Nenhuma quebra de linha dentro de células (substituir por espaço)
+- Sem caracteres especiais (acentos permitidos)
+- Cabeçalho somente na primeira linha
+- Todos os registros devem estar em linha única
+
+---
+
+#### ✅ COMO ENRIQUECER OS DADOS
+Para cada item, siga as seguintes regras:
+
+1. **ID_produto**: Igual ao SKU informado.
+2. **ID_OEM**: Igual à referência original (com formatação OEM, incluindo hífens se houver).
+3. **Nome do Produto (BR)**:
+    - Máx. 60 caracteres.
+    - Deve descrever o produto + a palavra "Genuíno" + Nome da marca (ex.: Honda).
+    - Não incluir a referência.
+    - Ex.: "Parafuso fix pinhão Honda Genuíno".
+4. **ID do Fabricante**: Igual à referência.
+5. **Quantidade (Padrão)**: Igual ao valor informado.
+6. **EAN**: Igual ao informado.
+7. **SKU**: Igual ao informado.
+8. **Nome da categoria**: Categoria da peça (ex.: Parafusos Moto, Kit Revisão Moto, Carroceria Moto).
+9. **Preço (Padrão (BRL))**: Preço de Venda, sem R$ e com duas casas decimais (ex.: 5.16).
+10. **Preço de Compra**: Igual ao Preço de Custo.
+11. **Custo (médio)**: Igual ao Preço de Custo.
+12. **Peso**: Obter em sites oficiais, marketplaces, ou estimar com base em peças semelhantes.
+13. **Altura / Comprimento / Largura**: Dimensões em cm, obtidas ou estimadas.
+    - Se material for flexível e dimensão > 30 cm, reduzir 40%.
+14. **Descrição (BR)**: Breve descrição + "SKU: LK [SKU]".
+15. **Descrição adicional 1 (BR)**: Texto fixo "incluir texto".
+16. **Descrição adicional 2 (BR)**: Use o modelo abaixo substituindo os placeholders:
+```
+Descrição do Produto: XXXXXX
+Aplicação (Compatibilidade de Modelos e Ano): XXXXXX
+Descrição Técnica: XXXXXX
+Marca: XXXXXX
+Garantia: 3 meses
+Data: Data do dia
+Conteúdo da Embalagem: 1 UND de XXXXXX
+Dimensões em cm (Altura x Comprimento x Largura): XXXXXX
+Peso (kg): XXXXXX
+Código SKU: XXXXXX
+Código do Fabricante/Referência: XXXXXX
+NCM: XXXXXX
+Descrição NCM: XXXXXX
+Op: LK
+```
+17. **NCM**: Código fiscal para a peça.
+    - Ex.: Parafusos → 7318.15.00; Porcas → 7318.16.00; Carenagens → 8714.19.00.
+18. **Nome do fabricante**: Marca original (ex.: Honda).
+19. **Campos fiscais fixos**:
+    - Campo adicional - Tipo de unidade: un
+    - Tipo de unidade: un
+    - Campo adicional - Código da origem: 0 - Nacional, exceto as indicadas nos códigos 3, 4, 5 e 8
+    - Código da origem: mesmo texto acima
+    - Parâmetro - Origin Type (BR): 0
+    - Parâmetro - Origin Detail (BR): Reseller
+
+---
+
+#### ✅ EXEMPLO DE LINHA COMPLETA NO CSV
+```
+CMNS0485KLE;90084041000;Parafuso fix pinhão Honda Genuíno;90084041000;2;7897925504859;CMNS0485KLE;Parafusos Moto;5.16;3.44;3.44;0.01;Parafuso fix pinhão original Honda, rosca metálica SKU: LK CMNS0485KLE;incluir texto;Descrição do Produto: Parafuso fix pinhão Aplicação (Compatibilidade de Modelos e Ano): motos Honda diversas Descrição Técnica: parafuso em aço Marca: Honda Garantia: 3 meses Data: 2025-08-05 Conteúdo da Embalagem: 1 UND de parafuso Dimensões em cm (Altura x Comprimento x Largura): 0.5x5.0...
+```
+
+---
+
+#### ✅ FONTES PARA PESQUISA DE ENRIQUECIMENTO
+- Sites oficiais das montadoras (Honda, Yamaha etc.)
+- Marketplaces: Mercado Livre, Amazon, Americanas
+- Catálogos de peças originais
+- Se não houver informações, estimar com base em peças similares
+
+---
+
+#### ✅ SAÍDA FINAL
+- Arquivo CSV no padrão acima.
+- UTF-8, delimitador ";", sem caracteres especiais, sem quebras de linha internas.
